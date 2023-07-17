@@ -14,7 +14,7 @@
       </div>
     </header>
 
-    <main class="msger-chat">
+    <main ref="messageContainer" class="msger-chat">
       <div
         v-for="(m, index) in messages"
         :key="index"
@@ -42,24 +42,6 @@
           </div>
         </div>
       </div>
-
-      <!-- <div class="msg right-msg">
-        <div
-          class="msg-img"
-          style="
-            background-image: url(https://image.flaticon.com/icons/svg/145/145867.svg);
-          "
-        ></div>
-
-        <div class="msg-bubble">
-          <div class="msg-info">
-            <div class="msg-info-name">Sajad</div>
-            <div class="msg-info-time">12:46</div>
-          </div>
-
-          <div class="msg-text">You can change your name in JS section!</div>
-        </div>
-      </div> -->
     </main>
 
     <form class="msger-inputarea" @submit.prevent="handleSendMessage">
@@ -75,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref } from "vue";
+import { inject, onMounted, ref, watchEffect } from "vue";
 
 const username = ref<string>("");
 const room = ref<string>("");
@@ -83,11 +65,23 @@ const isJoinRoom = ref<boolean>(false);
 const chatHub: any = inject("chatHub");
 const message = ref<string>("");
 const messages = ref<{ user: string; message: string }[]>([]);
+const messageContainer = ref<any>(null);
 
 const handleJoinRoom = async () => {
   chatHub.emit("JoinRoom", { user: username.value, room: room.value });
   isJoinRoom.value = true;
 };
+
+watchEffect(() => {
+  if (messageContainer.value && !!messages.value.length) {
+    const { scrollHeight, clientHeight } = messageContainer.value;
+    messageContainer.value.scrollTo({
+      left: 0,
+      top: scrollHeight - clientHeight,
+      behavior: "smooth",
+    });
+  }
+});
 
 const handleSendMessage = () => {
   if (!message.value) return;
